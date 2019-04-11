@@ -2,6 +2,9 @@
 
 Convert FHIR resource definitions into Postgres views so they can be easily queries using SQL
 
+## High-level Architecture
+<img src="images/architecture.png" width="100">
+
 ## Prerequisites
 
 A docker container with Postgres FHIR database. This includes synthetic data created using Synthea
