@@ -1,4 +1,4 @@
-package com.kainos.fhirschemaconverter
+package com.kainos.fhirschemaconverter.persistence
 
 import org.scalatest._
 

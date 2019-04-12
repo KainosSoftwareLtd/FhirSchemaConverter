@@ -1,22 +1,14 @@
-package com.kainos.fhirschemaconverter
+package com.kainos.fhirschemaconverter.json
 
 import com.kainos.fhirschemaconverter.model._
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue}
 
-import scala.io.Source
+object JsonToFhirResourceConverter {
 
-object GeneratorCareConnectProfile extends App {
-
-  val jsonSchema: JsValue = Json.parse(Source.fromResource("care-connect-schema-definition-full.json")
-    .getLines().mkString)
-  val fhirResources = jsonToFhirResources(jsonSchema)
-  SqlWriter.createSqlViews(fhirResources)
-
-  private def jsonToFhirResources(jsonSchema: JsValue): Set[FhirResource] = {
+  def convert(jsonSchema: JsValue): Set[FhirResource] = {
     val resources: JsArray = (jsonSchema \ "entry").asOpt[JsArray].get
 
     resources.value
-      //.filter(r=> (r \ "resource" \ "id").as[String].equals("CareConnect-Patient-1")) //to process single resource
       .map(resource => {
       val resourceId = (resource \ "resource" \ "id").as[String]
       val resourceType = (resource \ "resource" \ "type").as[String]
@@ -45,10 +37,9 @@ object GeneratorCareConnectProfile extends App {
     val id = (property \ "id").as[String]
     var idList: Array[String] = id
       .replace(":", ".")
-      .split('.') //e.g. AllergyIntolerance.category
+      .split('.')
     var name = idList.last
 
-    //TODO: Probably best to split this into a seperate view. Currently only capturing Quantity field but missing 3 others
     if (name.endsWith("[x]")) {
       name = name.replace("[x]", "")
       idList = idList.dropRight(1) :+ "value" :+ "Quantity" :+ name
@@ -59,7 +50,7 @@ object GeneratorCareConnectProfile extends App {
   }
 
 
-  private def getFirstArrayElementIfPresent(arrayPaths: List[String],
+  def getFirstArrayElementIfPresent(arrayPaths: List[String],
                                             parents: List[String]): List[String] = {
     if (parents.isEmpty) {
       parents

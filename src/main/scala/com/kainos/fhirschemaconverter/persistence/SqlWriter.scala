@@ -1,4 +1,4 @@
-package com.kainos.fhirschemaconverter
+package com.kainos.fhirschemaconverter.persistence
 
 import java.sql.{Connection, DriverManager, ResultSet}
 
@@ -13,7 +13,7 @@ object SqlWriter {
       "jdbc:postgresql://localhost/fhirbase", "postgres", "postgres")
 
     fhirResources.filter(
-      r => tableExists(r.tableName.toLowerCase, sqlConnection))
+      r => SqlUtils.tableExists(r.tableName.toLowerCase, sqlConnection))
       .foreach(fhirResource => {
         val tableName = fhirResource.tableName.toLowerCase()
         val viewName = s"${fhirResource.id.replace("-", "_")}_view"
@@ -24,7 +24,7 @@ object SqlWriter {
 
         println(s"Full SQL to create view: $sqlCreateView")
 
-        if (sqlColumns.size > 0 && tableExists(tableName, sqlConnection)) {
+        if (sqlColumns.size > 0 && SqlUtils.tableExists(tableName, sqlConnection)) {
           val prepare_statement = sqlConnection.prepareStatement(sqlCreateView)
           prepare_statement.executeUpdate()
           prepare_statement.close()
@@ -33,13 +33,9 @@ object SqlWriter {
       )
   }
 
-  private def tableExists(tableName: String, sqlConnection: Connection): Boolean = {
-    val dbm = sqlConnection.getMetaData
-    val tables = dbm.getTables(null, null, tableName, null)
-    tables.next
-  }
 
-  private def convertFhirColumnsToSqlColumns(fhirColumns: Set[FhirResourceProperty], tableName: String,
+
+  def convertFhirColumnsToSqlColumns(fhirColumns: Set[FhirResourceProperty], tableName: String,
                                              sql_connection: Connection): Set[String] = {
 
     val columnCountResults: ResultSet = checkColumnCounts(fhirColumns, tableName, sql_connection)
@@ -50,7 +46,7 @@ object SqlWriter {
       .map(fhirColumnToSqlColumn)
   }
 
-  private def checkColumnCounts(fhirColumns: Set[FhirResourceProperty],
+  def checkColumnCounts(fhirColumns: Set[FhirResourceProperty],
                                 tableName: String, sql_connection: Connection) = {
     val countColumnsSql: Set[String] = fhirColumns
       .filter(r => isAlphaNumeric(r.name) && r.columnNamesOfParentResources.forall(isAlphaNumeric))
@@ -69,11 +65,11 @@ object SqlWriter {
     resultSet
   }
 
-  private def isColumnEmpty(fhirColumn: FhirResourceProperty, queryResults: ResultSet): Boolean = {
+  def isColumnEmpty(fhirColumn: FhirResourceProperty, queryResults: ResultSet): Boolean = {
     queryResults.getInt(generateUniqueColumnName(fhirColumn)) == 0
   }
 
-  private def fhirColumnToSqlColumn(fhirColumn: FhirResourceProperty): String = {
+  def fhirColumnToSqlColumn(fhirColumn: FhirResourceProperty): String = {
 
     val hasParents = !fhirColumn.columnNamesOfParentResources.isEmpty
     val parentSelector = if (hasParents) {
@@ -95,7 +91,7 @@ object SqlWriter {
     }
   }
 
-  private def generateUniqueColumnName(fhirColumn: FhirResourceProperty): String = {
+  def generateUniqueColumnName(fhirColumn: FhirResourceProperty): String = {
     val hasParents = !fhirColumn.columnNamesOfParentResources.isEmpty
     val colName = if (hasParents) fhirColumn.columnNamesOfParentResources.mkString("_") + "_" +
       fhirColumn.name else fhirColumn.name

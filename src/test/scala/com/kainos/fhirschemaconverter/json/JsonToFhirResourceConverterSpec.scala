@@ -1,10 +1,10 @@
-package com.kainos.fhirschemaconverter
+package com.kainos.fhirschemaconverter.json
 
 import com.kainos.fhirschemaconverter.model._
 import org.scalatest._
 import play.api.libs.json.{JsValue, Json}
 
-class GeneratorCareconnectProfileSpec extends FlatSpec with Matchers {
+class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
 
   "The findDataType method" should "identify arrays in a schema file" in {
     val json: JsValue = Json.parse(
@@ -22,7 +22,7 @@ class GeneratorCareconnectProfileSpec extends FlatSpec with Matchers {
            }
   """)
 
-    val result: DataType = GeneratorCareConnectProfile.findDataType(json)
+    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
 
     result shouldEqual ArrayType
   }
@@ -48,7 +48,7 @@ class GeneratorCareconnectProfileSpec extends FlatSpec with Matchers {
          }
   """)
 
-    val result: DataType = GeneratorCareConnectProfile.findDataType(json)
+    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
 
     result shouldEqual DateType
   }
@@ -74,7 +74,7 @@ class GeneratorCareconnectProfileSpec extends FlatSpec with Matchers {
           }
   """)
 
-    val result: DataType = GeneratorCareConnectProfile.findDataType(json)
+    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
 
     result shouldEqual DateType
   }
@@ -101,7 +101,7 @@ class GeneratorCareconnectProfileSpec extends FlatSpec with Matchers {
           }
   """)
 
-    val result: DataType = GeneratorCareConnectProfile.findDataType(json)
+    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
 
     result shouldEqual DoubleType
   }
@@ -127,7 +127,7 @@ class GeneratorCareconnectProfileSpec extends FlatSpec with Matchers {
           }
   """)
 
-    val result: DataType = GeneratorCareConnectProfile.findDataType(json)
+    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
 
     result shouldEqual StringType
   }
@@ -155,7 +155,7 @@ class GeneratorCareconnectProfileSpec extends FlatSpec with Matchers {
 
     val expected = FhirResourceProperty("family",StringType,List("name"))
 
-    val result = GeneratorCareConnectProfile.jsonPropertyToFhirResourceProperty(json)
+    val result = JsonToFhirResourceConverter.jsonPropertyToFhirResourceProperty(json)
 
     result shouldEqual expected
   }
