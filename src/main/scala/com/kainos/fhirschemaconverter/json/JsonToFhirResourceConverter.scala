@@ -1,10 +1,10 @@
 package com.kainos.fhirschemaconverter.json
 
 import com.kainos.fhirschemaconverter.model._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import play.api.libs.json.{JsArray, JsValue}
 
-object JsonToFhirResourceConverter extends LazyLogging {
+object JsonToFhirResourceConverter extends StrictLogging {
 
   def convert(jsonSchema: JsValue): Set[FhirResource] = {
     val resources: JsArray = (jsonSchema \ "entry").asOpt[JsArray].get

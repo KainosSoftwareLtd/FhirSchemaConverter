@@ -3,9 +3,9 @@ package com.kainos.fhirschemaconverter.persistence
 import java.sql.{Connection, DriverManager, ResultSet}
 
 import com.kainos.fhirschemaconverter.model._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 
-object SqlWriter extends LazyLogging {
+object SqlWriter extends StrictLogging {
 
   def createSqlViews(fhirResources: Set[FhirResource]): Unit = {
 
