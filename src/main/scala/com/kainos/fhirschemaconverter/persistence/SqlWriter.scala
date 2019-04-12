@@ -3,8 +3,9 @@ package com.kainos.fhirschemaconverter.persistence
 import java.sql.{Connection, DriverManager, ResultSet}
 
 import com.kainos.fhirschemaconverter.model._
+import com.typesafe.scalalogging.LazyLogging
 
-object SqlWriter {
+object SqlWriter extends LazyLogging {
 
   def createSqlViews(fhirResources: Set[FhirResource]): Unit = {
 
@@ -22,7 +23,7 @@ object SqlWriter {
           sqlColumns.mkString(",") +
           s" from $tableName a"
 
-        println(s"Full SQL to create view: $sqlCreateView")
+        logger.debug(s"Full SQL to create view: $sqlCreateView")
 
         if (sqlColumns.size > 0 && SqlUtils.tableExists(tableName, sqlConnection)) {
           val prepare_statement = sqlConnection.prepareStatement(sqlCreateView)
@@ -33,10 +34,8 @@ object SqlWriter {
       )
   }
 
-
-
   def convertFhirColumnsToSqlColumns(fhirColumns: Set[FhirResourceProperty], tableName: String,
-                                             sql_connection: Connection): Set[String] = {
+                                     sql_connection: Connection): Set[String] = {
 
     val columnCountResults: ResultSet = checkColumnCounts(fhirColumns, tableName, sql_connection)
 
@@ -47,7 +46,7 @@ object SqlWriter {
   }
 
   def checkColumnCounts(fhirColumns: Set[FhirResourceProperty],
-                                tableName: String, sql_connection: Connection) = {
+                        tableName: String, sql_connection: Connection) = {
     val countColumnsSql: Set[String] = fhirColumns
       .filter(r => isAlphaNumeric(r.name) && r.columnNamesOfParentResources.forall(isAlphaNumeric))
       .map(r => "sum(case when "
@@ -57,7 +56,7 @@ object SqlWriter {
     val countAllColumnsSql = s"select ${countColumnsSql.mkString(",")} " +
       s"from (select resource from $tableName order by random() desc limit 1000) a"
 
-    println("Sql to check column counts: " + countAllColumnsSql)
+    logger.debug("SQL to check column counts: " + countAllColumnsSql)
 
     val statement = sql_connection.createStatement()
     val resultSet: ResultSet = statement.executeQuery(countAllColumnsSql)

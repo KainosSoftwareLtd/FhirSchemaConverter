@@ -1,9 +1,10 @@
 package com.kainos.fhirschemaconverter.json
 
 import com.kainos.fhirschemaconverter.model._
+import com.typesafe.scalalogging.LazyLogging
 import play.api.libs.json.{JsArray, JsValue}
 
-object JsonToFhirResourceConverter {
+object JsonToFhirResourceConverter extends LazyLogging {
 
   def convert(jsonSchema: JsValue): Set[FhirResource] = {
     val resources: JsArray = (jsonSchema \ "entry").asOpt[JsArray].get
@@ -12,7 +13,7 @@ object JsonToFhirResourceConverter {
       .map(resource => {
       val resourceId = (resource \ "resource" \ "id").as[String]
       val resourceType = (resource \ "resource" \ "type").as[String]
-      println(s"Resource name: $resourceId")
+      logger.debug(s"Resource name: $resourceId")
 
       val properties: JsArray = (resource \ "resource" \ "snapshot" \ "element").asOpt[JsArray].get
       val fhirResourceProperties = properties.value.map(property => {
