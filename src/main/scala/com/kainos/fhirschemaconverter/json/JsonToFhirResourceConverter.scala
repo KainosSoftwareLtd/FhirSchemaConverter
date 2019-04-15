@@ -51,7 +51,7 @@ object JsonToFhirResourceConverter extends StrictLogging {
   }
 
 
-  def getFirstArrayElementIfPresent(arrayPaths: List[String],
+  private def getFirstArrayElementIfPresent(arrayPaths: List[String],
                                             parents: List[String]): List[String] = {
     if (parents.isEmpty) {
       parents
@@ -80,7 +80,7 @@ object JsonToFhirResourceConverter extends StrictLogging {
     else StringType
   }
 
-  def hasParents(pathList: Array[String]) = {
+  private def hasParents(pathList: Array[String]) = {
     pathList.size > 2
   }
 

@@ -27,7 +27,7 @@ class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
     result shouldEqual ArrayType
   }
 
-  "The findDataType method" should "identify dates in a schema file from dateTime" in {
+  "The findDataType method" should "identify dates in a schema file from 'dateTime' code" in {
     val json: JsValue = Json.parse(
       """
          {
@@ -53,7 +53,7 @@ class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
     result shouldEqual DateType
   }
 
-  "The findDataType method" should "identify instances in a schema file as dates" in {
+  "The findDataType method" should "identify dates in a schema file from 'instant' code" in {
     val json: JsValue = Json.parse(
       """
           {
@@ -79,7 +79,7 @@ class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
     result shouldEqual DateType
   }
 
-  "The findDataType method" should "identify quantity in a schema file as double" in {
+  "The findDataType method" should "identify 'Quantity' in a schema file as double" in {
     val json: JsValue = Json.parse(
       """
          {
