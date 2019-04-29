@@ -2,7 +2,7 @@
 
 Convert FHIR resource definitions into Postgres views so they can be easily queries using SQL
 
-**NB: This is a Proof-of-concept and not currently intended for production use**
+**NB: This is a proof of concept and not currently intended for production use**
 
 ## High-level Architecture
 <img src="images/architecture.png" width="600">
