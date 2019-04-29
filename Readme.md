@@ -50,7 +50,7 @@ docker run -d -p 3001:3000 -v $PWD/metabase-data/metabase.db:/tmp/metabase.db -e
 
 4. To log in to the Metabase dashboard, navigate to `localhost:3001` in a browser and use the following credentials:
 ```
-Username: m.mcbride@kainos.com
+Username: example.user@kainos.com
 Password: password1
 ```
 
@@ -58,7 +58,7 @@ Password: password1
 To save changes made to the metabase database, copy `metabase.db` folder from docker.
 ```
 cd metabase-data
-docker cp metabase:/metabase.db ./
+docker cp metabase2:/metabase.db ./
 ```
 
 
