@@ -4,6 +4,7 @@ import java.sql.{Connection, DriverManager, ResultSet}
 
 import com.kainos.fhirschemaconverter.FhirPropertyToSqlColumn
 import com.kainos.fhirschemaconverter.model._
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
 
 /**
@@ -13,9 +14,17 @@ object SqlWriter extends StrictLogging {
 
   def createSqlViews(fhirResources: Set[FhirResource]): Unit = {
 
+    //loaded from resources/application.conf if no overrides set in environment
+    val conf = ConfigFactory.load
+    val hostname = conf.getString("output.db.host")
+    val port = conf.getString("output.db.port")
+    val database = conf.getString("output.db.database")
+    val username = conf.getString("output.db.username")
+    val password = conf.getString("output.db.password")
+
     Class.forName("org.postgresql.Driver")
     val sqlConnection: Connection = DriverManager.getConnection(
-      "jdbc:postgresql://localhost/fhirbase", "postgres", "postgres")
+      s"jdbc:postgresql://$hostname:$port/$database", username, password)
 
     fhirResources.filter(
       r => SqlUtils.tableExists(r.tableName.toLowerCase, sqlConnection))
