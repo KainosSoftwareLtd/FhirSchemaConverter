@@ -2,9 +2,13 @@ package com.kainos.fhirschemaconverter.persistence
 
 import java.sql.{Connection, DriverManager, ResultSet}
 
+import com.kainos.fhirschemaconverter.FhirPropertyToSqlColumn
 import com.kainos.fhirschemaconverter.model._
 import com.typesafe.scalalogging.StrictLogging
 
+/**
+  * Creates views in database based on our internal collection of FHIR resources
+  */
 object SqlWriter extends StrictLogging {
 
   def createSqlViews(fhirResources: Set[FhirResource]): Unit = {
@@ -34,24 +38,30 @@ object SqlWriter extends StrictLogging {
       )
   }
 
-  def convertFhirColumnsToSqlColumns(fhirColumns: Set[FhirResourceProperty], tableName: String,
-                                     sql_connection: Connection): Set[String] = {
+  private def convertFhirColumnsToSqlColumns(
+                                              fhirColumns: Set[FhirResourceProperty],
+                                              tableName: String,
+                                              sql_connection: Connection
+                                            ): Set[String] = {
 
     val columnCountResults: ResultSet = checkColumnCounts(fhirColumns, tableName, sql_connection)
 
     fhirColumns
-      .filter(r => isAlphaNumeric(r.name) && r.columnNamesOfParentResources.forall(isAlphaNumeric))
+      .filter(r => SqlUtils.isAlphaNumeric(r.name) && r.columnNamesOfParentResources.forall(SqlUtils.isAlphaNumeric))
       .filter(r => !isColumnEmpty(r, columnCountResults))
-      .map(fhirColumnToSqlColumn)
+      .map(FhirPropertyToSqlColumn.convert(_))
   }
 
-  def checkColumnCounts(fhirColumns: Set[FhirResourceProperty],
-                        tableName: String, sql_connection: Connection) = {
+  private def checkColumnCounts(
+                                 fhirColumns: Set[FhirResourceProperty],
+                                 tableName: String,
+                                 sql_connection: Connection
+                               ): ResultSet = {
     val countColumnsSql: Set[String] = fhirColumns
-      .filter(r => isAlphaNumeric(r.name) && r.columnNamesOfParentResources.forall(isAlphaNumeric))
+      .filter(r => SqlUtils.isAlphaNumeric(r.name) && r.columnNamesOfParentResources.forall(SqlUtils.isAlphaNumeric))
       .map(r => "sum(case when "
-        + fhirColumnToSqlColumn(r).replace(s"as ${generateUniqueColumnName(r)}", "")
-        + " is not null then 1 else 0 end) as " + generateUniqueColumnName(r))
+        + FhirPropertyToSqlColumn.convert(r).replace(s"as ${FhirPropertyToSqlColumn.generateUniqueColumnName(r)}", "")
+        + " is not null then 1 else 0 end) as " + FhirPropertyToSqlColumn.generateUniqueColumnName(r))
 
     val countAllColumnsSql = s"select ${countColumnsSql.mkString(",")} " +
       s"from (select resource from $tableName order by random() desc limit 1000) a"
@@ -64,40 +74,11 @@ object SqlWriter extends StrictLogging {
     resultSet
   }
 
-  def isColumnEmpty(fhirColumn: FhirResourceProperty, queryResults: ResultSet): Boolean = {
-    queryResults.getInt(generateUniqueColumnName(fhirColumn)) == 0
+  private def isColumnEmpty(
+                             fhirColumn: FhirResourceProperty,
+                             queryResults: ResultSet
+                           ): Boolean = {
+    queryResults.getInt(FhirPropertyToSqlColumn.generateUniqueColumnName(fhirColumn)) == 0
   }
-
-  def fhirColumnToSqlColumn(fhirColumn: FhirResourceProperty): String = {
-
-    val hasParents = !fhirColumn.columnNamesOfParentResources.isEmpty
-    val parentSelector = if (hasParents) {
-      ("->'" + fhirColumn.columnNamesOfParentResources.mkString("'->'") + "' ->>'")
-        .replace(">'0'", ">0")
-    } else "->>'"
-    val asClause = "as " + generateUniqueColumnName(fhirColumn)
-
-    if (fhirColumn.dataType.equals(ArrayType)) {
-      "cast(a.resource" + parentSelector.replace("->>'", "->'") +
-        fhirColumn.name + "' as " + fhirColumn.dataType.sqlType + ")" + asClause
-    }
-    else if (!fhirColumn.dataType.equals(StringType)) {
-      "cast(a.resource" + parentSelector + fhirColumn.name + "' as " +
-        fhirColumn.dataType.sqlType + ") " + asClause
-    }
-    else {
-      "a.resource" + parentSelector + fhirColumn.name + "' " + asClause
-    }
-  }
-
-  def generateUniqueColumnName(fhirColumn: FhirResourceProperty): String = {
-    val hasParents = !fhirColumn.columnNamesOfParentResources.isEmpty
-    val colName = if (hasParents) fhirColumn.columnNamesOfParentResources.mkString("_") + "_" +
-      fhirColumn.name else fhirColumn.name
-    colName.slice(0, 60) //postgres max length of column name is 62
-  }
-
-  def isAlphaNumeric(s: String) = s.forall((('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9'))
-    .toSet.contains(_))
 
 }

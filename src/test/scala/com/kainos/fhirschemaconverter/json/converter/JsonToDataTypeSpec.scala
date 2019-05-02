@@ -1,30 +1,13 @@
-package com.kainos.fhirschemaconverter.json
+package com.kainos.fhirschemaconverter.json.converter
 
 import com.kainos.fhirschemaconverter.model._
 import org.scalatest._
 import play.api.libs.json.{JsValue, Json}
 
-import scala.io.Source
+class JsonToDataTypeSpec extends FlatSpec with Matchers {
 
-class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
-
-  "The FHIR Schema Converter" should "convert a sample schema file with one resource to our internal representation" in {
-
-    val inputSchema = Json.parse(Source.fromResource("CareConnectSchemaSubsetSingleResource.json")
-      .getLines().mkString)
-
-    val expected = Set(FhirResource(
-      "CareConnect-AllergyIntolerance-1",
-      "AllergyIntolerance",
-      Set(FhirResourceProperty("id", StringType, List("meta")))))
-
-    val result = JsonToFhirResourceConverter.convert(inputSchema)
-
-    result shouldEqual expected
-  }
-
-  "The single json property converter" should
-    "convert a json property to a FHIR resource property" in {
+  "The data type converter " should
+    "work with 'string' as input" in {
     val json: JsValue = Json.parse(
       """
          {
@@ -45,14 +28,14 @@ class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
           }
   """)
 
-    val expected = FhirResourceProperty("family",StringType,List("name"))
+    val result = JsonToDataType.convert(json)
 
-    val result = JsonToFhirResourceConverter.jsonPropertyToFhirResourceProperty(json)
-
-    result shouldEqual expected
+    result shouldEqual StringType
   }
 
-  "The findDataType method" should "identify arrays in a schema file" in {
+
+  "The data type converter " should
+    "work with arrays as input" in {
     val json: JsValue = Json.parse(
       """
          {
@@ -68,12 +51,13 @@ class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
            }
   """)
 
-    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
+    val result: DataType = JsonToDataType.convert(json)
 
     result shouldEqual ArrayType
   }
 
-  "The findDataType method" should "identify dates in a schema file from 'dateTime' code" in {
+  "The data type converter " should
+    "work with 'dateTime' as input" in {
     val json: JsValue = Json.parse(
       """
          {
@@ -94,12 +78,13 @@ class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
          }
   """)
 
-    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
+    val result: DataType = JsonToDataType.convert(json)
 
     result shouldEqual DateType
   }
 
-  "The findDataType method" should "identify dates in a schema file from 'instant' code" in {
+  "The data type converter " should
+    "work with 'instant' as input" in {
     val json: JsValue = Json.parse(
       """
           {
@@ -120,12 +105,13 @@ class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
           }
   """)
 
-    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
+    val result: DataType = JsonToDataType.convert(json)
 
     result shouldEqual DateType
   }
 
-  "The findDataType method" should "identify 'Quantity' in a schema file as double" in {
+  "The data type converter " should
+    "work with 'Quantity' as input" in {
     val json: JsValue = Json.parse(
       """
          {
@@ -147,35 +133,36 @@ class JsonToFhirResourceConverterSpec extends FlatSpec with Matchers {
           }
   """)
 
-    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
+    val result: DataType = JsonToDataType.convert(json)
 
     result shouldEqual DoubleType
   }
 
-  "The findDataType method" should "identify string in a schema file as string" in {
+  "The data type converter " should
+    "work with 'decimal' as input" in {
     val json: JsValue = Json.parse(
       """
          {
-            "id": "Patient.name.family",
-            "path": "Patient.name.family",
+            "id": "Observation.valueQuantity:valueQuantity.value",
+            "path": "Observation.valueQuantity.value",
             "min": 0,
             "max": "1",
             "base": {
-                "path": "HumanName.family",
+                "path": "Quantity.value",
                 "min": 0,
                 "max": "1"
             },
             "type": [
                 {
-                    "code": "string"
+                    "code": "decimal"
                 }
             ]
           }
   """)
 
-    val result: DataType = JsonToFhirResourceConverter.findDataType(json)
+    val result: DataType = JsonToDataType.convert(json)
 
-    result shouldEqual StringType
+    result shouldEqual DoubleType
   }
 
 }

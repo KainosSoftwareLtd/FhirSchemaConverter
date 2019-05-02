@@ -1,0 +1,63 @@
+{
+  "entry": [
+    {
+      "fullUrl": "http://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-AllergyIntolerance-1",
+      "resource": {
+        "resourceType": "StructureDefinition",
+        "id": "CareConnect-AllergyIntolerance-1",
+        "url": "https://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-AllergyIntolerance-1",
+        "name": "CareConnect-AllergyIntolerance-1",
+        "fhirVersion": "3.0.1",
+        "kind": "resource",
+        "abstract": false,
+        "type": "AllergyIntolerance",
+        "baseDefinition": "http://hl7.org/fhir/StructureDefinition/AllergyIntolerance",
+        "derivation": "constraint",
+        "snapshot": {
+          "element": [
+            {
+              "id": "AllergyIntolerance.code.coding",
+              "path": "AllergyIntolerance.code.coding",
+              "short": "Code defined by a terminology system",
+              "definition": "A reference to a code defined by a terminology system.",
+              "comment": "Codes may be defined very casually in enumerations, or code lists, up to very formal definitions such as SNOMED CT - see the HL7 v3 Core Principles for more information.  Ordering of codings is undefined and SHALL NOT be used to infer meaning. Generally, at most only one of the coding values will be labeled as UserSelected = true.",
+              "requirements": "Allows for translations and alternate encodings within a code system.  Also supports communication of the same instance to systems requiring different encodings.",
+              "min": 0,
+              "max": "*",
+              "base": {
+                "path": "CodeableConcept.coding",
+                "min": 0,
+                "max": "*"
+              },
+              "type": [
+                {
+                  "code": "Coding"
+                }
+              ]
+            },
+            {
+              "id": "AllergyIntolerance.code.coding.code",
+              "path": "AllergyIntolerance.code.coding.code",
+              "short": "Symbol in syntax defined by the system",
+              "definition": "A symbol in syntax defined by the system. The symbol may be a predefined code or an expression in a syntax defined by the coding system (e.g. post-coordination).",
+              "comment": "Note that FHIR strings may not exceed 1MB in size",
+              "requirements": "Need to refer to a particular code in the system.",
+              "min": 0,
+              "max": "1",
+              "base": {
+                "path": "Coding.code",
+                "min": 0,
+                "max": "1"
+              },
+              "type": [
+                {
+                  "code": "code"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
