@@ -36,6 +36,13 @@ object JsonToFhirResource extends StrictLogging {
     }).toSet
   }
 
+  /**
+    * Adds 0 to the list of parents to get the first element
+    *
+    * e.g.
+    * Given: arrayPaths = ["a.b"] , parents = ["a","b","c"]
+    * Result: ["a"."b"."0"."c"]
+    */
   private def getFirstArrayElementIfPresent(arrayPaths: List[String],
                                             parents: List[String]): List[String] = {
     if (parents.isEmpty) {
