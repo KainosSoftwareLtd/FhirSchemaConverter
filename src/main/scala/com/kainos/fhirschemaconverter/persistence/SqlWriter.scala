@@ -38,7 +38,7 @@ object SqlWriter extends StrictLogging {
 
         logger.debug(s"Full SQL to create view: $sqlCreateView")
 
-        if (sqlColumns.size > 0 && SqlUtils.tableExists(tableName, sqlConnection)) {
+        if (sqlColumns.nonEmpty && SqlUtils.tableExists(tableName, sqlConnection)) {
           val prepare_statement = sqlConnection.prepareStatement(sqlCreateView)
           prepare_statement.executeUpdate()
           prepare_statement.close()
@@ -47,25 +47,21 @@ object SqlWriter extends StrictLogging {
       )
   }
 
-  private def convertFhirColumnsToSqlColumns(
-                                              fhirColumns: Set[FhirResourceProperty],
-                                              tableName: String,
-                                              sql_connection: Connection
-                                            ): Set[String] = {
+  private def convertFhirColumnsToSqlColumns(fhirColumns: Set[FhirResourceProperty],
+                                             tableName: String,
+                                             sql_connection: Connection): Set[String] = {
 
     val columnCountResults: ResultSet = checkColumnCounts(fhirColumns, tableName, sql_connection)
 
     fhirColumns
       .filter(r => SqlUtils.isAlphaNumeric(r.name) && r.columnNamesOfParentResources.forall(SqlUtils.isAlphaNumeric))
       .filter(r => !isColumnEmpty(r, columnCountResults))
-      .map(FhirPropertyToSqlColumn.convert(_))
+      .map(FhirPropertyToSqlColumn.convert)
   }
 
-  private def checkColumnCounts(
-                                 fhirColumns: Set[FhirResourceProperty],
-                                 tableName: String,
-                                 sql_connection: Connection
-                               ): ResultSet = {
+  private def checkColumnCounts(fhirColumns: Set[FhirResourceProperty],
+                                tableName: String,
+                                sql_connection: Connection): ResultSet = {
     val countColumnsSql: Set[String] = fhirColumns
       .filter(r => SqlUtils.isAlphaNumeric(r.name) && r.columnNamesOfParentResources.forall(SqlUtils.isAlphaNumeric))
       .map(r => "sum(case when "
@@ -83,10 +79,8 @@ object SqlWriter extends StrictLogging {
     resultSet
   }
 
-  private def isColumnEmpty(
-                             fhirColumn: FhirResourceProperty,
-                             queryResults: ResultSet
-                           ): Boolean = {
+  private def isColumnEmpty(fhirColumn: FhirResourceProperty,
+                            queryResults: ResultSet): Boolean = {
     queryResults.getInt(FhirPropertyToSqlColumn.generateUniqueColumnName(fhirColumn)) == 0
   }
 

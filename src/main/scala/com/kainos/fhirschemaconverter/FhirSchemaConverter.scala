@@ -13,5 +13,4 @@ object FhirSchemaConverter extends App {
   val jsonSchema: JsValue = FhirSchemaReader.read()
   val fhirResources = JsonToFhirResource.convert(jsonSchema)
   SqlWriter.createSqlViews(fhirResources)
-
 }
