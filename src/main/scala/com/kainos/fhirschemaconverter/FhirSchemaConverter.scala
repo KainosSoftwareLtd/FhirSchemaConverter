@@ -6,6 +6,7 @@ import com.kainos.fhirschemaconverter.persistence.SqlWriter
 import play.api.libs.json.JsValue
 
 /**
+  * Driver of application.
   * Takes FHIR schema in JSON format and generates DB views to make the data easy to query with SQL
   */
 object FhirSchemaConverter extends App {

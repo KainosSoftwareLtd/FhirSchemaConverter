@@ -1,4 +1,4 @@
-package com.kainos.fhirschemaconverter
+package com.kainos.fhirschemaconverter.persistence
 
 import com.kainos.fhirschemaconverter.model.{ArrayType, FhirResourceProperty, StringType}
 
@@ -9,7 +9,7 @@ import com.kainos.fhirschemaconverter.model.{ArrayType, FhirResourceProperty, St
 object FhirPropertyToSqlColumn {
   def convert(fhirColumn: FhirResourceProperty): String = {
 
-    val hasParents = !fhirColumn.columnNamesOfParentResources.isEmpty
+    val hasParents = fhirColumn.columnNamesOfParentResources.nonEmpty
     val parentSelector = if (hasParents) {
       ("->'" + fhirColumn.columnNamesOfParentResources.mkString("'->'") + "' ->>'")
         .replace(">'0'", ">0")
@@ -30,7 +30,7 @@ object FhirPropertyToSqlColumn {
   }
 
   def generateUniqueColumnName(fhirColumn: FhirResourceProperty): String = {
-    val hasParents = !fhirColumn.columnNamesOfParentResources.isEmpty
+    val hasParents = fhirColumn.columnNamesOfParentResources.nonEmpty
     val colName = if (hasParents) fhirColumn.columnNamesOfParentResources.mkString("_") + "_" +
       fhirColumn.name else fhirColumn.name
     colName.slice(0, 60) //postgres max length of column name is 62

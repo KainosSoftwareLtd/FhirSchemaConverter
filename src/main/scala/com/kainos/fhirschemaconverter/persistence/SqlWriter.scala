@@ -2,7 +2,6 @@ package com.kainos.fhirschemaconverter.persistence
 
 import java.sql.{Connection, DriverManager, ResultSet}
 
-import com.kainos.fhirschemaconverter.FhirPropertyToSqlColumn
 import com.kainos.fhirschemaconverter.model._
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
