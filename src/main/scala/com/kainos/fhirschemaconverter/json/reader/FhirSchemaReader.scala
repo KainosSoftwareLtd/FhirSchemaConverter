@@ -11,6 +11,7 @@ object FhirSchemaReader {
 
   def read(): JsValue = {
     Json.parse(Source.fromResource("care-connect-schema-definition-full.json")
+    //Json.parse(Source.fromResource("patient.json")
       .getLines().mkString)
   }
 

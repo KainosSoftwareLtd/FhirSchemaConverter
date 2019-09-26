@@ -31,8 +31,23 @@ object FhirPropertyToSqlColumn {
 
   def generateUniqueColumnName(fhirColumn: FhirResourceProperty): String = {
     val hasParents = fhirColumn.columnNamesOfParentResources.nonEmpty
-    val colName = if (hasParents) fhirColumn.columnNamesOfParentResources.mkString("_") + "_" +
+    var colName = if (hasParents) fhirColumn.columnNamesOfParentResources.mkString("_") + "_" +
       fhirColumn.name else fhirColumn.name
-    colName.slice(0, 60) //postgres max length of column name is 62
+    
+    if (colName.length() > 62) {
+      // shorten column name by removing the _
+      colName = colName.replace("_","")
+
+      // if still too long truncate it.
+      if (colName.length() > 62) {
+            colName.slice(0, 61) //postgres max length of column name is 62
+      }
+      else {
+        colName
+      }
+    }
+    else {
+      colName
+    }
   }
 }

@@ -10,6 +10,9 @@ import play.api.libs.json.{JsArray, JsValue}
 object JsonToFhirResource extends StrictLogging {
 
   def convert(jsonSchema: JsValue): Set[FhirResource] = {
+
+    logger.debug("Entry into JsonToFhirResource.convert")
+
     val resources: JsArray = (jsonSchema \ "entry").asOpt[JsArray].get
 
     resources.value
@@ -19,7 +22,13 @@ object JsonToFhirResource extends StrictLogging {
       logger.debug(s"Resource name: $resourceId")
 
       val properties: JsArray = (resource \ "resource" \ "snapshot" \ "element").asOpt[JsArray].get
+
+      //logger.debug(properties.toString())
+
       val fhirResourceProperties = properties.value.map(property => {
+
+       // logger.debug(property.toString())
+        
         JsonToFhirProperty.convert(property)
       }).toSet
 
