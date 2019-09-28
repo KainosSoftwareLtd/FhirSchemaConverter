@@ -11,7 +11,23 @@ import play.api.libs.json.JsValue
   */
 object FhirSchemaConverter extends App {
 
-  val jsonSchema: JsValue = FhirSchemaReader.read()
-  val fhirResources = JsonToFhirResource.convert(jsonSchema)
-  SqlWriter.createSqlViews(fhirResources)
+  //Hard coded way of swiching bewteen a file based schema and the FHIR StructureDefiniton schema.
+  val fhirSchemaFromFile: Boolean = true;
+
+  if (fhirSchemaFromFile) { 
+    val jsonSchema: JsValue = FhirSchemaReader.read()
+    val fhirResources = JsonToFhirResource.convert(jsonSchema)
+    SqlWriter.createSqlViews(fhirResources)
+  }
+  else { 
+    //Tables of interest to Evolve IC reporting project
+    val tableList = List("Patient","Encounter","Observation", "MedicationOrder");
+
+    for( table <- tableList){ 
+      println("Processing Table is : " +table); 
+      var fhirResources = JsonToFhirResource.convertFromDB(FhirSchemaReader.loadStructureDefinition(table))
+      SqlWriter.createSqlViews(fhirResources)
+    } 
+  }
+
 }

@@ -11,14 +11,14 @@ object FhirPropertyToSqlColumn {
 
     val hasParents = fhirColumn.columnNamesOfParentResources.nonEmpty
     val parentSelector = if (hasParents) {
-      ("->'" + fhirColumn.columnNamesOfParentResources.mkString("'->'") + "' ->>'")
+      ("->'" + fhirColumn.columnNamesOfParentResources.mkString("'->'") + "'->>'")
         .replace(">'0'", ">0")
     } else "->>'"
     val asClause = "as " + generateUniqueColumnName(fhirColumn)
 
     if (fhirColumn.dataType.equals(ArrayType)) {
       "cast(a.resource" + parentSelector.replace("->>'", "->'") +
-        fhirColumn.name + "' as " + fhirColumn.dataType.sqlType + ")" + asClause
+        fhirColumn.name + "' as " + fhirColumn.dataType.sqlType + ") " + asClause
     }
     else if (!fhirColumn.dataType.equals(StringType)) {
       "cast(a.resource" + parentSelector + fhirColumn.name + "' as " +

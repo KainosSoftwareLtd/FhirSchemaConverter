@@ -10,28 +10,13 @@ import play.api.libs.json.JsValue
 object JsonToDataType extends StrictLogging {
 
   def convert(property: JsValue) = {
-
-/*
     val dataTypeFromJson = (property \ "type" \ 0 \ "code")
-    //if ((property \ "base" \ "max").as[String].equals("*")) {
-    //  ArrayType
-    //}
-    //else 
-    if (dataTypeFromJson.isDefined) {
-      dataTypeFromJson.as[String] match {
-        case "dateTime" | "instant" => DateType
-        case "decimal" => DoubleType
-        case "Quantity" => ObjectType
-        case _ => StringType
-      }
-    }
-    //else StringType
-    else ArrayType
-*/
-    val dataTypeFromJson = (property \ "type" \ 0 \ "code")
-    val baseMaxFromJson = (property \ "base" \ "max")
+    val maxFromJson = (property \ "max")
 
-    if (baseMaxFromJson.isDefined &&  baseMaxFromJson.as[String].equals("*")) {
+     //logger.debug("dataTypeFromJson: " + dataTypeFromJson.toString())
+     //logger.debug("maxFromJson: " + maxFromJson.toString())
+
+    if (maxFromJson.isDefined &&  maxFromJson.as[String].equals("*")) {
       ArrayType
     }
     else if (dataTypeFromJson.isDefined) {

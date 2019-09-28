@@ -29,15 +29,20 @@ object SqlWriter extends StrictLogging {
         val tableName = fhirResource.tableName.toLowerCase()
         val viewName = s"${fhirResource.id.replace("-", "_")}_view"
         val sqlColumns = convertFhirColumnsToSqlColumns(fhirResource.properties, tableName, sqlConnection)
+
+        //crude but not totally effective way of ordering the columns alphabetically
+        //e.g. columns involved in cast statements are not in sequence.
+        val sortedSqlColumns = collection.immutable.SortedSet[String]() ++ sqlColumns
+
         val sqlCreateView = s"drop view if exists $schema"+s"$viewName;\ncreate or replace view $schema"+s"$viewName as select \n" +
-          sqlColumns.mkString(",\n") +
+          sortedSqlColumns.mkString(",\n") +
           s"\nfrom $schema"+s"$tableName a"
 
-        logger.debug(s"Full SQL to create view: $sqlCreateView")
+        //logger.debug(s"Full SQL to create view: $sqlCreateView")
 
         reflect.io.File(s"./views/$viewName"+".sql").writeAll(s"$sqlCreateView")
 
-        if (sqlColumns.nonEmpty && SqlUtils.tableExists(tableName, sqlConnection)) {
+        if (sortedSqlColumns.nonEmpty && SqlUtils.tableExists(tableName, sqlConnection)) {
           val prepare_statement = sqlConnection.prepareStatement(sqlCreateView)
           prepare_statement.executeUpdate()
           prepare_statement.close()
@@ -70,7 +75,7 @@ object SqlWriter extends StrictLogging {
     val countAllColumnsSql = s"select ${countColumnsSql.mkString(",")} " +
       s"from (select resource from $tableName order by random() desc limit 1000) a"
 
-    logger.debug("SQL to check column counts: " + countAllColumnsSql)
+    //logger.debug("SQL to check column counts: " + countAllColumnsSql)
 
     val statement = sql_connection.createStatement()
     val resultSet: ResultSet = statement.executeQuery(countAllColumnsSql)
@@ -80,8 +85,8 @@ object SqlWriter extends StrictLogging {
 
   private def isColumnEmpty(fhirColumn: FhirResourceProperty,
                             queryResults: ResultSet): Boolean = {
-                             return false
-    //queryResults.getInt(FhirPropertyToSqlColumn.generateUniqueColumnName(fhirColumn)) == 0
+                             //return false
+    queryResults.getInt(FhirPropertyToSqlColumn.generateUniqueColumnName(fhirColumn)) == 0
   }
 
 }
