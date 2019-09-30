@@ -15,15 +15,13 @@ object SqlWriter extends StrictLogging {
 
     //loaded from resources/application.conf if no overrides set in environment
     val conf = ConfigFactory.load
-    val hostname = conf.getString("output.db.host")
-    val port = conf.getString("output.db.port")
-    val database = conf.getString("output.db.database")
-    val username = conf.getString("output.db.username")
-    val password = conf.getString("output.db.password")
+    var schema = conf.getString("output.db.schema")
 
-    Class.forName("org.postgresql.Driver")
-    val sqlConnection: Connection = DriverManager.getConnection(
-      s"jdbc:postgresql://$hostname:$port/$database", username, password)
+     if (schema.length() > 0) { 
+        schema = schema.concat(".")
+     }
+
+   val sqlConnection: Connection = SqlUtils.getSqlConnection()
 
     fhirResources.filter(
       r => SqlUtils.tableExists(r.tableName.toLowerCase, sqlConnection))
@@ -31,13 +29,20 @@ object SqlWriter extends StrictLogging {
         val tableName = fhirResource.tableName.toLowerCase()
         val viewName = s"${fhirResource.id.replace("-", "_")}_view"
         val sqlColumns = convertFhirColumnsToSqlColumns(fhirResource.properties, tableName, sqlConnection)
-        val sqlCreateView = s"drop view if exists $viewName; create or replace view $viewName as select " +
-          sqlColumns.mkString(",") +
-          s" from $tableName a"
 
-        logger.debug(s"Full SQL to create view: $sqlCreateView")
+        //crude but not totally effective way of ordering the columns alphabetically
+        //e.g. columns involved in cast statements are not in sequence.
+        val sortedSqlColumns = collection.immutable.SortedSet[String]() ++ sqlColumns
 
-        if (sqlColumns.nonEmpty && SqlUtils.tableExists(tableName, sqlConnection)) {
+        val sqlCreateView = s"drop view if exists $schema"+s"$viewName;\ncreate or replace view $schema"+s"$viewName as select \n" +
+          sortedSqlColumns.mkString(",\n") +
+          s"\nfrom $schema"+s"$tableName a"
+
+        //logger.debug(s"Full SQL to create view: $sqlCreateView")
+
+        reflect.io.File(s"./views/$viewName"+".sql").writeAll(s"$sqlCreateView")
+
+        if (sortedSqlColumns.nonEmpty && SqlUtils.tableExists(tableName, sqlConnection)) {
           val prepare_statement = sqlConnection.prepareStatement(sqlCreateView)
           prepare_statement.executeUpdate()
           prepare_statement.close()
@@ -70,7 +75,7 @@ object SqlWriter extends StrictLogging {
     val countAllColumnsSql = s"select ${countColumnsSql.mkString(",")} " +
       s"from (select resource from $tableName order by random() desc limit 1000) a"
 
-    logger.debug("SQL to check column counts: " + countAllColumnsSql)
+    //logger.debug("SQL to check column counts: " + countAllColumnsSql)
 
     val statement = sql_connection.createStatement()
     val resultSet: ResultSet = statement.executeQuery(countAllColumnsSql)
@@ -80,6 +85,7 @@ object SqlWriter extends StrictLogging {
 
   private def isColumnEmpty(fhirColumn: FhirResourceProperty,
                             queryResults: ResultSet): Boolean = {
+                             //return false
     queryResults.getInt(FhirPropertyToSqlColumn.generateUniqueColumnName(fhirColumn)) == 0
   }
 
