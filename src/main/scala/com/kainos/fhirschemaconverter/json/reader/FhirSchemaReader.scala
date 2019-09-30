@@ -16,8 +16,6 @@ object FhirSchemaReader {
   // taken from file for simplicity 
   def read(): JsValue = {
     Json.parse(Source.fromResource("care-connect-schema-definition-full.json").getLines().mkString)
-
-     // Json.parse(Source.fromResource("care-connect-patient-colla.json").getLines().mkString)
   }
 
   // read from FHIR DB

@@ -11,16 +11,20 @@ import com.typesafe.scalalogging.StrictLogging
   */
 object SqlReader extends StrictLogging {
 
-   def fetchSchemaForTable (   //schema: String,
-                                    tableName: String,
-                                    sql_connection: Connection): ResultSet = {
+   def fetchSchemaForTable (tableName: String,
+                            sql_connection: Connection): ResultSet = {
 
 
-    //loaded from resources/application.conf if no overrides set in environment
+    //Is a tenant schema set in application.conf
     val conf = ConfigFactory.load
     var schema = conf.getString("output.db.schema")
 
-    val getStructureDefinition = s"select (resource - 'text')::text as resource from $schema.structuredefinition " + 
+    if (schema.length() > 0) { 
+        schema = schema.concat(".")
+     }
+
+    val getStructureDefinition = s"select (resource - 'text')::text as resource from $schema" + 
+                                 s"structuredefinition " + 
                                  s"where id = '$tableName' "
 
     logger.debug("SQL to getStructureDefinition: " + getStructureDefinition)

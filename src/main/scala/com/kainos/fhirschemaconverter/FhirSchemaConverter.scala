@@ -11,7 +11,9 @@ import play.api.libs.json.JsValue
   */
 object FhirSchemaConverter extends App {
 
-  //Hard coded way of swiching bewteen a file based schema and the FHIR StructureDefiniton schema.
+  //Hard coded boolean for swiching bewteen a file based schema and the FHIR StructureDefiniton schema.
+  //Note: the fhir_base:latest docker image does not have any data in the (public) StructureDefiniton table.
+  //so this will need an Evolve IC database to run.
   val fhirSchemaFromFile: Boolean = true;
 
   if (fhirSchemaFromFile) { 
@@ -24,7 +26,7 @@ object FhirSchemaConverter extends App {
     val tableList = List("Patient","Encounter","Observation", "MedicationOrder");
 
     for( table <- tableList){ 
-      println("Processing Table is : " +table); 
+      println("Processing table : " +table); 
       var fhirResources = JsonToFhirResource.convertFromDB(FhirSchemaReader.loadStructureDefinition(table))
       SqlWriter.createSqlViews(fhirResources)
     } 
